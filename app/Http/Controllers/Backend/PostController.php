@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Post;
 use App\Http\Requests\PostRequest;
 
+use Illuminate\Support\Facades\Storage;
+
 class PostController extends Controller
 {
     /**
@@ -75,7 +77,17 @@ class PostController extends Controller
      */
     public function update(PostRequest $request, Post $post)
     {
-        //
+        $post->update($request->all());
+
+        if ($request->file('file')){
+            //eliminar imagen
+            Storage::disk('public')->delete($post->image);
+            $post->image = $request->file('file')->store('posts','public');
+            $post->save();
+        }
+
+        return back()->with('status', 'Actualizado con exito');
+
     }
 
     /**
@@ -86,6 +98,10 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        //eliminacion imagen
+        Storage::disk('public')->delete($post->image);
+        $post->delete();
+
+        return back()->with('status', 'Eliminado con exito');
     }
 }
